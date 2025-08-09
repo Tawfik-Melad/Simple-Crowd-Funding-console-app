@@ -6,6 +6,23 @@ def hash_password(password) :
     return hashlib.sha256(password.encode('utf-8')).hexdigest()
 
 
+def get_id():
+    """Generate a unique ID for a new project."""
+    ids=[]
+    try:
+        with open('.projects.txt', 'r') as f:
+            for line in f:
+                parts = line.strip().split(',')
+                if len(parts) > 0:
+                    ids.append(int(parts[0]))
+    except FileNotFoundError:
+        return 1
+    id=1
+    for i in range(len(ids)):
+        if ids[i] == id:
+            id += 1
+    return id
+
 def validate_date(date_text):
     try:
         return datetime.datetime.strptime(date_text, '%Y-%m-%d')
@@ -32,11 +49,7 @@ def create_project(user_email):
         print("End date must be after start date.")
         return
     # Count number of lines in the file to generate a unique project ID
-    try:
-        with open('.projects.txt', 'r') as f:
-            id = sum(1 for _ in f) + 1
-    except FileNotFoundError:
-        id = 1
+    id = get_id()
 
     project = {
         "id": id,
@@ -48,10 +61,10 @@ def create_project(user_email):
         "end_date": end_date
     }
     with open('.projects.txt', 'a') as file:
-        file.write(f"{user_email},{title},{details},{target},{start_date},{end_date}\n")
+        file.write(f"{id},{user_email},{title},{details},{target},{start_date},{end_date}\n")
     print("Project created successfully.")
 
-def view_projects():
+def view_projects(email):
     try:
         with open('.projects.txt', 'r') as file:
             projects = [line.strip().split(',') for line in file.readlines()]
@@ -61,8 +74,9 @@ def view_projects():
 
     for idx, project in enumerate(projects, 1):
         project_id, owner, title, details, target, start_date, end_date = project
-
-        print(f"{project_id}. {title} - {details} (Target: {target}, Start: {start_date}, End: {end_date}) Owner: {owner}")
+        you= " (You)" if owner == email else ""
+        project_id = project_id if owner == email else "PRIVATE"
+        print(f"{idx}. ID: {project_id} - {title} -{details} (Target: {target}, Start: {start_date}, End: {end_date}) Owner: {owner}{you}")
 
 def view_owned_projects(user_email):
     try:
@@ -174,5 +188,21 @@ def update_project(user_email):
     print("Project updated successfully.")
 
 
-def search():
-    pass
+def search_in_projects():
+    keyword = input("Enter keyword to search projects: ").strip().lower()
+    try:
+        with open('.projects.txt', 'r') as file:
+            projects = [line.strip().split(',') for line in file.readlines()]
+    except FileNotFoundError:
+        print("No projects found.")
+        return
+
+    found_projects = [p for p in projects if keyword in p[1] or keyword in p[2].lower() or keyword in p[3].lower() or keyword in p[4].lower()]
+    if not found_projects:
+        print("No projects found with that keyword.")
+        return
+
+    for idx, project in enumerate(found_projects, 1):
+        project_id, owner, title, details, target, start_date, end_date = project
+        print(f"{idx} - {title} -{details} (Target: {target}, Start: {start_date}, End: {end_date}) Owner: {owner}")
+

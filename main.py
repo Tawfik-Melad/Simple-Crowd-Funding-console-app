@@ -26,18 +26,21 @@ while True:
     print("2. View all projects")
     print("3. Edit your project")
     print("4. Delete your project")
-    print("5. Exit")
+    print("5. Search for a project")
+    print("6. Exit")
     choice = input("Enter your choice: ")
     if choice == "1":
         lib.create_project(email)
     elif choice == "2":
-        lib.view_projects()
+        lib.view_projects(email)
     elif choice == "3":
         lib.update_project(email)
     elif choice == "4":
         lib.delete_project(email)
     elif choice == "5":
-        print("Goodbye!")
+        lib.search_in_projects()
+    elif choice == "6":
+        print("Exiting the application. Goodbye!")
         break
     else:
         print("Invalid choice. Please try again.")
